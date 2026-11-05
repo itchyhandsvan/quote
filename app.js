@@ -1,9 +1,9 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=32";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=32";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=32";
-import { cropPhoto } from "./cropper.js?v=32";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=32";
-import { unlock, lockDevice } from "./lock.js?v=32";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=33";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=33";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=33";
+import { cropPhoto } from "./cropper.js?v=33";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=33";
+import { unlock, lockDevice } from "./lock.js?v=33";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";

@@ -1,0 +1,13 @@
+{
+  "name": "Quotation & Invoice",
+  "short_name": "Quote & Invoice",
+  "description": "Quotations and invoices for ITCHYHANDSVAN from a Google Sheet.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ef",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "assets/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

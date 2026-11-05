@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Quotation &amp; Invoice</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Quotation &amp; Invoice">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="stylesheet" href="styles.css?v=29">
+  <script>
+    // Shows start-up errors on the page instead of failing silently.
+    window.addEventListener("error", (e) => {
+      const el = document.getElementById("error");
+      if (!el) return;
+      el.textContent = "Something went wrong starting the app: " + (e.message || "unknown error");
+      el.hidden = false;
+    });
+  </script>
+  <script src="vendor/pdf-lib.min.js"></script>
+  <script src="vendor/fontkit.umd.min.js"></script>
+  <script type="module" src="app.js?v=29"></script>
+</head>
+<body>
+  <header class="top">
+    <img src="assets/logo.svg" alt="" class="top-logo">
+    <h1>Quotation &amp; Invoice <span class="version">v29</span></h1>
+    <button type="button" id="settings-open" class="icon-btn" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="card">
+      <form id="load-form" onsubmit="return false">
+        <label for="sheet-link">Google Sheet link</label>
+        <div class="row">
+          <input id="sheet-link" type="text" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off"
+                 placeholder="https://docs.google.com/spreadsheets/d/…" required>
+          <button type="submit" id="load-btn">Load</button>
+        </div>
+      </form>
+      <div id="recent" class="recent" hidden></div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="job" class="card" hidden>
+      <div class="job-head">
+        <div>
+          <div id="job-client" class="job-client"></div>
+          <div id="job-company" class="muted"></div>
+        </div>
+        <button type="button" id="reload-btn" class="icon-btn" aria-label="Refresh from the Google Sheet" title="Refresh from the Google Sheet">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+            <path d="M20 4v7h-7"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="segmented" role="tablist">
+        <button type="button" data-kind="quotation" class="active">Quotation</button>
+        <button type="button" data-kind="invoice">Invoice</button>
+      </div>
+
+      <dl id="job-summary" class="summary"></dl>
+
+      <div id="quotation-options">
+        <label class="toggle">
+          <input type="checkbox" id="show-sub-price" checked>
+          <span>
+            Show subsequent-pc prices
+          </span>
+        </label>
+      </div>
+
+      <div id="invoice-options" hidden>
+        <label for="amount-due">Amount due</label>
+        <select id="amount-due"></select>
+      </div>
+
+      <div id="photo-section">
+        <h2>Product photos</h2>
+        <p class="hint">Photos are remembered by item name on this device.</p>
+        <ul id="photo-list" class="photo-list"></ul>
+      </div>
+
+      <button type="button" id="make-btn" class="primary">Preview PDF</button>
+    </section>
+
+    <section id="result" class="card" hidden>
+      <h2 class="preview-title">Preview</h2>
+      <div id="file-name" class="muted small"></div>
+      <div id="totals-check" class="totals-check" role="status" hidden></div>
+      <div id="preview-pages" class="preview-pages" aria-label="PDF preview"></div>
+      <div class="result-actions">
+        <div class="row">
+          <button type="button" id="share-btn" class="primary">Share PDF</button>
+          <a id="download-link" class="button download-btn" aria-label="Download PDF" title="Download PDF">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 4v11"/>
+              <path d="M7 10l5 5 5-5"/>
+              <path d="M5 20h14"/>
+            </svg>
+            <span class="download-text">Download PDF</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="cropper" class="cropper">
+    <header class="dialog-head">
+      <h2 id="crop-title">Crop photo</h2>
+    </header>
+    <p class="hint">Drag to move, pinch or use the slider to zoom. The box shows exactly what appears in the PDF.</p>
+    <div id="crop-frame" class="crop-frame">
+      <img id="crop-image" alt="" draggable="false">
+    </div>
+    <label class="crop-zoom">
+      <span>Zoom</span>
+      <input id="crop-zoom" type="range" min="1" max="4" step="0.01" value="1">
+    </label>
+    <div class="row crop-actions">
+      <button type="button" id="crop-reset" class="ghost">Reset</button>
+      <span class="spacer"></span>
+      <button type="button" id="crop-cancel">Cancel</button>
+      <button type="button" id="crop-use" class="primary">Use photo</button>
+    </div>
+  </dialog>
+
+  <dialog id="settings">
+    <form method="dialog" id="settings-form">
+      <header class="dialog-head">
+        <h2>Settings</h2>
+        <button value="close" class="ghost">Done</button>
+      </header>
+      <p class="hint">These details are printed on every PDF. Changes are saved on this device.</p>
+      <div id="settings-fields"></div>
+      <button type="button" id="settings-reset" class="ghost danger">Reset to original wording</button>
+    </form>
+  </dialog>
+</body>
+</html>

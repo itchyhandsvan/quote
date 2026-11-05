@@ -1,8 +1,9 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=29";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=29";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=29";
-import { cropPhoto } from "./cropper.js?v=29";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=29";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=32";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=32";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=32";
+import { cropPhoto } from "./cropper.js?v=32";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=32";
+import { unlock, lockDevice } from "./lock.js?v=32";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
@@ -368,6 +369,10 @@ $("#settings-reset").onclick = () => {
   clearResult();
 };
 
+$("#settings-lock").onclick = lockDevice;
+
+// Nothing is shown or loaded until the passcode has been entered on this device.
+await unlock();
 renderRecent();
 // Allow opening the app with ?sheet=<link> (handy for bookmarks).
 const linked = new URLSearchParams(location.search).get("sheet");

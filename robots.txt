@@ -1,0 +1,3 @@
+# Private tool for ITCHYHANDSVAN. Please don't crawl or list it.
+User-agent: *
+Disallow: /

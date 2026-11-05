@@ -265,3 +265,29 @@ dialog::backdrop { background: rgb(0 0 0 / 0.35); }
 .dialog-head h2 { margin: 0; }
 .field { margin-top: 14px; }
 .field span { display: block; margin-bottom: 4px; }
+
+/* Passcode screen: until unlocked, only the lock screen is visible. */
+html.locked body > :not(.lock-screen) { display: none !important; }
+.lock-screen {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); padding: 24px;
+}
+html:not(.locked) .lock-screen { display: none; }
+.lock-card {
+  width: min(360px, 100%);
+  background: var(--card); border-radius: var(--radius);
+  padding: 28px 24px 20px; text-align: center;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+.lock-logo { width: 64px; height: 64px; }
+.lock-card h1 { font-size: 20px; margin: 12px 0 20px; }
+.lock-card label { text-align: left; }
+.lock-card .primary { margin-top: 12px; }
+.lock-card .error { min-height: 1.2em; }
+.lock-card.shake { animation: shake 0.35s; }
+@keyframes shake {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+.settings-actions { justify-content: space-between; margin-top: 16px; }

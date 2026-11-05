@@ -1,9 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="locked">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Quotation &amp; Invoice</title>
+  <!-- Private tool: ask search engines not to list or follow this site. -->
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="googlebot" content="noindex, nofollow, noarchive">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Quotation &amp; Invoice">
@@ -12,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
-  <link rel="stylesheet" href="styles.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=32">
   <script>
     // Shows start-up errors on the page instead of failing silently.
     window.addEventListener("error", (e) => {
@@ -24,12 +27,24 @@
   </script>
   <script src="vendor/pdf-lib.min.js"></script>
   <script src="vendor/fontkit.umd.min.js"></script>
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js?v=32"></script>
 </head>
 <body>
+  <!-- Shown until the passcode is entered on this device (see lock.js). -->
+  <div id="lock-screen" class="lock-screen">
+    <form id="lock-form" class="lock-card" autocomplete="off">
+      <img src="assets/logo.svg" alt="" class="lock-logo">
+      <h1>Quotation &amp; Invoice</h1>
+      <label for="lock-input">Passcode</label>
+      <input id="lock-input" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" required>
+      <button type="submit" class="primary">Unlock</button>
+      <p id="lock-message" class="error" role="alert"></p>
+    </form>
+  </div>
+
   <header class="top">
     <img src="assets/logo.svg" alt="" class="top-logo">
-    <h1>Quotation &amp; Invoice <span class="version">v29</span></h1>
+    <h1>Quotation &amp; Invoice <span class="version">v32</span></h1>
     <button type="button" id="settings-open" class="icon-btn" aria-label="Settings" title="Settings">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="3"/>
@@ -145,7 +160,10 @@
       </header>
       <p class="hint">These details are printed on every PDF. Changes are saved on this device.</p>
       <div id="settings-fields"></div>
-      <button type="button" id="settings-reset" class="ghost danger">Reset to original wording</button>
+      <div class="row settings-actions">
+        <button type="button" id="settings-reset" class="ghost danger">Reset to original wording</button>
+        <button type="button" id="settings-lock" class="ghost">Lock this device</button>
+      </div>
     </form>
   </dialog>
 </body>

@@ -1,10 +1,10 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=37";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=37";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=37";
-import { cropPhoto } from "./cropper.js?v=37";
-import { pastePhoto } from "./paste.js?v=37";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=37";
-import { unlock, lockDevice } from "./lock.js?v=37";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=38";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=38";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=38";
+import { cropPhoto } from "./cropper.js?v=38";
+import { pastePhoto } from "./paste.js?v=38";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=38";
+import { unlock, lockDevice } from "./lock.js?v=38";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
@@ -153,14 +153,6 @@ async function renderPhotos() {
 
     const name = Object.assign(document.createElement("span"), { className: "photo-name", textContent: item.name });
 
-    const pick = document.createElement("label");
-    pick.className = "button small solid"; // Change / Add photo is the main action, in black
-    pick.textContent = blob ? "Change" : "Add photo";
-    // Listing HEIC stops iOS converting Photo Library pictures to JPEG before handing them over,
-    // a slow step that can stall on big camera photos. Safari reads HEIC itself.
-    const input = Object.assign(document.createElement("input"), {
-      type: "file", accept: "image/*,image/heic,image/heif", hidden: true,
-    });
     // Picking a photo opens the crop window; nothing is saved if it's cancelled.
     const crop = async (source) => {
       try {
@@ -173,30 +165,19 @@ async function renderPhotos() {
         showPhotoError(`Couldn't open that photo: ${err.message}`);
       }
     };
-    input.onchange = () => {
-      const file = input.files[0];
-      input.value = ""; // allow picking the same file again
-      showPhotoError("");
-      if (file) crop(file);
-    };
-    pick.append(input);
 
-    // Paste: a photo copied in Photos (Share → Copy). Avoids the Photo Library picker,
-    // which can get stuck on some iPhones.
-    const paste = Object.assign(document.createElement("button"), {
-      type: "button", className: "button small icon-small", title: "Paste photo",
+    // Change / Add photo is the main action, in black. It opens the app's own menu, with Paste first.
+    const pick = Object.assign(document.createElement("button"), {
+      type: "button", className: "button small solid", textContent: blob ? "Change" : "Add photo",
     });
-    paste.setAttribute("aria-label", `Paste photo for ${item.name}`);
-    paste.innerHTML =
-      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" ' +
-      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<rect x="8" y="2" width="8" height="4" rx="1"/>' +
-      '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>';
-    paste.onclick = async () => {
-      showPhotoError("");
-      const image = await pastePhoto(item.name);
-      if (image) crop(image);
-    };
+    pick.setAttribute("aria-haspopup", "menu");
+    pick.onclick = () => openPhotoMenu(pick, {
+      paste: async () => {
+        const image = await pastePhoto(item.name);
+        if (image) crop(image);
+      },
+      file: (file) => crop(file),
+    });
 
     // Name and buttons sit together beside the thumbnail; on narrow screens the buttons
     // drop under the name, never under the photo.
@@ -219,13 +200,90 @@ async function renderPhotos() {
         '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/>' +
         '<path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>';
       remove.onclick = async () => { await deletePhoto(item.name); clearResult(); renderPhotos(); };
-      actions.append(adjust, pick, paste, remove);
+      actions.append(adjust, pick, remove);
     } else {
-      actions.append(pick, paste);
+      actions.append(pick);
     }
     return li;
   }));
   list.replaceChildren(...rows);
+}
+
+const MENU_ICONS = {
+  paste: '<rect x="8" y="2" width="8" height="4" rx="1"/>' +
+    '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>' +
+    '<circle cx="12" cy="13.5" r="3.5"/>',
+  folder: '<path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
+};
+
+function menuItem(tag, icon, text) {
+  const el = Object.assign(document.createElement(tag), { className: "photo-menu-item" });
+  if (tag === "button") el.type = "button";
+  el.setAttribute("role", "menuitem");
+  el.innerHTML =
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" ' +
+    `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MENU_ICONS[icon]}</svg>`;
+  el.append(text);
+  return el;
+}
+
+// The Add photo / Change menu: Paste photo, Take photo, Choose file.
+// The Photo Library picker gets stuck on some iPhones, so Paste comes first; "Choose file"
+// still opens iOS's own menu (Files, Photo Library…) for anything else.
+function openPhotoMenu(anchor, { paste, file }) {
+  closePhotoMenu();
+  showPhotoError("");
+  const menu = Object.assign(document.createElement("div"), { className: "photo-menu", id: "photo-menu" });
+  menu.setAttribute("role", "menu");
+
+  const pasteItem = menuItem("button", "paste", "Paste photo");
+  pasteItem.onclick = () => { closePhotoMenu(); paste(); };
+  menu.append(pasteItem);
+
+  // Each picker is a <label> around its file input: the most reliable way to open it on iPhone.
+  const picker = (icon, text, attrs) => {
+    const label = menuItem("label", icon, text);
+    // Listing HEIC stops iOS converting photos to JPEG before handing them over, a slow step
+    // that can stall on big camera photos. Safari reads HEIC itself.
+    const input = Object.assign(document.createElement("input"), {
+      type: "file", accept: "image/*,image/heic,image/heif", hidden: true,
+    });
+    for (const [k, v] of Object.entries(attrs)) input.setAttribute(k, v);
+    input.onchange = () => {
+      const picked = input.files[0];
+      closePhotoMenu();
+      if (picked) file(picked);
+    };
+    input.oncancel = closePhotoMenu;
+    label.append(input);
+    menu.append(label);
+  };
+  picker("camera", "Take photo", { capture: "environment" });
+  picker("folder", "Choose file", {});
+
+  anchor.after(menu);
+  anchor.setAttribute("aria-expanded", "true");
+  // Close when tapping anywhere else.
+  setTimeout(() => document.addEventListener("pointerdown", outsideTap), 0);
+  document.addEventListener("keydown", escapeKey);
+}
+
+function outsideTap(e) {
+  if (!e.target.closest("#photo-menu")) closePhotoMenu();
+}
+
+function escapeKey(e) {
+  if (e.key === "Escape") closePhotoMenu();
+}
+
+function closePhotoMenu() {
+  const menu = $("#photo-menu");
+  if (!menu) return;
+  menu.previousElementSibling?.setAttribute("aria-expanded", "false");
+  menu.remove();
+  document.removeEventListener("pointerdown", outsideTap);
+  document.removeEventListener("keydown", escapeKey);
 }
 
 function showPhotoError(message) {

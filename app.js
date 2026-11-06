@@ -1,9 +1,10 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=36";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=36";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=36";
-import { cropPhoto } from "./cropper.js?v=36";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=36";
-import { unlock, lockDevice } from "./lock.js?v=36";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=37";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=37";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=37";
+import { cropPhoto } from "./cropper.js?v=37";
+import { pastePhoto } from "./paste.js?v=37";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=37";
+import { unlock, lockDevice } from "./lock.js?v=37";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
@@ -191,10 +192,9 @@ async function renderPhotos() {
       'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<rect x="8" y="2" width="8" height="4" rx="1"/>' +
       '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>';
-    paste.hidden = !navigator.clipboard?.read;
     paste.onclick = async () => {
       showPhotoError("");
-      const image = await pastedImage();
+      const image = await pastePhoto(item.name);
       if (image) crop(image);
     };
 
@@ -232,24 +232,6 @@ function showPhotoError(message) {
   const el = $("#photo-error");
   el.textContent = message;
   el.hidden = !message;
-}
-
-// Reads an image from the clipboard. Must run straight from the tap: Safari then shows
-// its "Paste" bubble, and the photo arrives once that's tapped.
-async function pastedImage() {
-  let items;
-  try {
-    items = await navigator.clipboard.read();
-  } catch (err) {
-    if (err.name !== "NotAllowedError") showPhotoError(`Couldn't paste: ${err.message}`);
-    return null; // NotAllowedError: the Paste bubble was dismissed
-  }
-  for (const item of items) {
-    const type = item.types.find((t) => t.startsWith("image/"));
-    if (type) return item.getType(type);
-  }
-  showPhotoError("There's no photo copied. In Photos, open the photo, tap Share → Copy, then tap Paste again.");
-  return null;
 }
 
 // ---------- PDF ----------

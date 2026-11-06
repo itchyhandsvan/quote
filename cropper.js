@@ -2,7 +2,7 @@
 // quotation (111 x 90), so what's inside the frame is exactly what the PDF shows.
 // Drag to move, pinch or use the slider to zoom.
 
-import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=38";
+import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=39";
 
 const ORIGINAL_MAX = 2400; // originals are scaled down to this to keep storage small
 const MAX_ZOOM = 4;
@@ -28,7 +28,7 @@ function loadImage(file) {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => resolve({ img, url });
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("this photo's format couldn't be read")); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("that file isn't a photo the app can read (use a JPEG, PNG or HEIC)")); };
     img.src = url;
   });
 }

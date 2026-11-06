@@ -1,10 +1,10 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=38";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=38";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=38";
-import { cropPhoto } from "./cropper.js?v=38";
-import { pastePhoto } from "./paste.js?v=38";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=38";
-import { unlock, lockDevice } from "./lock.js?v=38";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=39";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=39";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=39";
+import { cropPhoto } from "./cropper.js?v=39";
+import { pastePhoto } from "./paste.js?v=39";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=39";
+import { unlock, lockDevice } from "./lock.js?v=39";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
@@ -260,7 +260,9 @@ function openPhotoMenu(anchor, { paste, file }) {
     menu.append(label);
   };
   picker("camera", "Take photo", { capture: "environment" });
-  picker("folder", "Choose file", {});
+  // Asking for "any file" rather than images makes iOS go straight to Files, skipping its
+  // Photo Library / Take photo menu. Non-photos are caught when the crop window opens.
+  picker("folder", "Choose file", { accept: "application/octet-stream" });
 
   anchor.after(menu);
   anchor.setAttribute("aria-expanded", "true");

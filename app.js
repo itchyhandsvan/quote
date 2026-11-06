@@ -1,9 +1,9 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=33";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=33";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=33";
-import { cropPhoto } from "./cropper.js?v=33";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=33";
-import { unlock, lockDevice } from "./lock.js?v=33";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=35";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=35";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=35";
+import { cropPhoto } from "./cropper.js?v=35";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=35";
+import { unlock, lockDevice } from "./lock.js?v=35";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
@@ -155,7 +155,11 @@ async function renderPhotos() {
     const pick = document.createElement("label");
     pick.className = "button small solid"; // Change / Add photo is the main action, in black
     pick.textContent = blob ? "Change" : "Add photo";
-    const input = Object.assign(document.createElement("input"), { type: "file", accept: "image/*", hidden: true });
+    // Listing HEIC stops iOS converting Photo Library pictures to JPEG before handing them over,
+    // a slow step that can stall on big camera photos. Safari reads HEIC itself.
+    const input = Object.assign(document.createElement("input"), {
+      type: "file", accept: "image/*,image/heic,image/heif", hidden: true,
+    });
     // Picking a photo opens the crop window; nothing is saved if it's cancelled.
     const crop = async (source) => {
       try {
@@ -175,7 +179,12 @@ async function renderPhotos() {
     };
     pick.append(input);
 
-    li.append(thumb, name);
+    // Name and buttons sit together beside the thumbnail; on narrow screens the buttons
+    // drop under the name, never under the photo.
+    const actions = Object.assign(document.createElement("div"), { className: "photo-actions" });
+    const body = Object.assign(document.createElement("div"), { className: "photo-body" });
+    body.append(name, actions);
+    li.append(thumb, body);
     if (blob) {
       const adjust = Object.assign(document.createElement("button"), {
         type: "button", className: "button small", textContent: "Adjust",
@@ -191,9 +200,9 @@ async function renderPhotos() {
         '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/>' +
         '<path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>';
       remove.onclick = async () => { await deletePhoto(item.name); clearResult(); renderPhotos(); };
-      li.append(adjust, pick, remove);
+      actions.append(adjust, pick, remove);
     } else {
-      li.append(pick);
+      actions.append(pick);
     }
     return li;
   }));

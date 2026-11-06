@@ -2,7 +2,7 @@
 // quotation (111 x 90), so what's inside the frame is exactly what the PDF shows.
 // Drag to move, pinch or use the slider to zoom.
 
-import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=33";
+import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=35";
 
 const ORIGINAL_MAX = 2400; // originals are scaled down to this to keep storage small
 const MAX_ZOOM = 4;
@@ -13,15 +13,43 @@ function toBlob(canvas, quality) {
   return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
 }
 
+const OPEN_TIMEOUT = 45000;
+
+function withTimeout(promise, ms, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+// Decodes with a plain <img>. Full-size iPhone camera photos (24–48 MP) from the Photo Library
+// can make createImageBitmap stall forever on iOS Safari; <img> copes with them.
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("this photo's format couldn't be read")); };
+    img.src = url;
+  });
+}
+
 async function downscale(file) {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, ORIGINAL_MAX / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close?.();
-  return { canvas, blob: await toBlob(canvas, 0.9) };
+  const { img, url } = await withTimeout(loadImage(file), OPEN_TIMEOUT, "the photo took too long to open");
+  try {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    if (!w || !h) throw new Error("the photo appears to be empty");
+    const scale = Math.min(1, ORIGINAL_MAX / Math.max(w, h));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await toBlob(canvas, 0.9);
+    if (!blob) throw new Error("the photo is too large for this device to process");
+    return { canvas, blob };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /**
@@ -29,18 +57,39 @@ async function downscale(file) {
  * Resolves to { cropped, original } (JPEG Blobs), or null if cancelled.
  */
 export async function cropPhoto(file, title) {
-  const { canvas: source, blob: original } = await downscale(file);
   const dialog = $("#cropper");
   const frame = $("#crop-frame");
   const img = $("#crop-image");
   const zoomInput = $("#crop-zoom");
+  const loading = $("#crop-loading");
+  const useBtn = $("#crop-use");
   $("#crop-title").textContent = title ? `Crop photo · ${title}` : "Crop photo";
+
+  // Open the window straight away with "Opening photo…", so a big photo never looks like a freeze.
+  img.removeAttribute("src");
+  loading.hidden = false;
+  useBtn.disabled = true;
+  let cancelled = false;
+  $("#crop-cancel").onclick = () => { cancelled = true; dialog.close(); };
+  dialog.oncancel = (e) => { e.preventDefault(); cancelled = true; dialog.close(); };
+  dialog.showModal();
+
+  let source, original;
+  try {
+    ({ canvas: source, blob: original } = await downscale(file));
+  } catch (err) {
+    dialog.close();
+    if (cancelled) return null;
+    throw err;
+  }
+  if (cancelled) return null;
 
   const url = URL.createObjectURL(original);
   const loaded = new Promise((resolve) => { img.onload = img.onerror = resolve; });
   img.src = url;
-  dialog.showModal();
   await loaded;
+  loading.hidden = true;
+  useBtn.disabled = false;
 
   const iw = source.width;
   const ih = source.height;

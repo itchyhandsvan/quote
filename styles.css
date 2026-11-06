@@ -142,12 +142,17 @@ button.small, .button.small { padding: 6px 10px; }
 #quotation-options:not([hidden]) ~ #photo-section h2 { margin-top: 32px; }
 
 .photo-list {list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
-.photo-list li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.photo-list li { display: flex; align-items: center; gap: 12px; }
+.photo-body {
+  flex: 1; min-width: 0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px;
+}
+.photo-actions { display: flex; align-items: center; gap: 8px; }
 .thumb {
   width: 74px; height: 60px; object-fit: cover; border-radius: 8px; flex: none;
   background: var(--bg) repeating-linear-gradient(45deg, transparent 0 6px, rgb(0 0 0 / 0.04) 6px 12px);
 }
-.photo-name { flex: 1; font-size: 15px; min-width: 120px; }
+.photo-name { flex: 1 1 90px; font-size: 15px; overflow-wrap: anywhere; }
 /* "Change" is a <label> (it opens the file picker), so reset label styles to match the buttons. */
 .photo-list button, .photo-list .button {
   display: inline-flex; align-items: center; justify-content: center;
@@ -184,6 +189,11 @@ button.small, .button.small { padding: 6px 10px; }
   -webkit-user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
+}
+.crop-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 15px; font-weight: 600;
 }
 .crop-zoom { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; }
 .crop-zoom input { flex: 1; padding: 0; border: 0; accent-color: var(--accent); }

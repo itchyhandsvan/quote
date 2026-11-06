@@ -2,7 +2,7 @@
 // quotation (111 x 90), so what's inside the frame is exactly what the PDF shows.
 // Drag to move, pinch or use the slider to zoom.
 
-import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=35";
+import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=36";
 
 const ORIGINAL_MAX = 2400; // originals are scaled down to this to keep storage small
 const MAX_ZOOM = 4;
@@ -109,6 +109,10 @@ export async function cropPhoto(file, title) {
   function clamp() {
     const { fw, fh } = frameSize();
     const s = coverScale() * zoom;
+    // Before the window has its size, there's nothing to measure; don't turn the position into NaN.
+    if (!(s > 0)) return;
+    if (!Number.isFinite(cx)) cx = 0.5;
+    if (!Number.isFinite(cy)) cy = 0.5;
     const halfW = fw / (2 * s * iw);
     const halfH = fh / (2 * s * ih);
     cx = Math.min(Math.max(cx, halfW), 1 - halfW);
@@ -150,6 +154,7 @@ export async function cropPhoto(file, title) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const now = gesture();
     const s = coverScale() * zoom;
+    if (!(s > 0)) return;
     cx -= (now.midX - last.midX) / (s * iw);
     cy -= (now.midY - last.midY) / (s * ih);
     if (now.dist && last.dist) {
@@ -181,7 +186,9 @@ export async function cropPhoto(file, title) {
   frame.addEventListener("pointercancel", onUp);
   frame.addEventListener("wheel", onWheel, { passive: false });
   zoomInput.addEventListener("input", onZoomInput);
-  window.addEventListener("resize", render);
+  // Redraw whenever the frame changes size (opening, rotating the phone, resizing the window).
+  const resized = new ResizeObserver(render);
+  resized.observe(frame);
   zoomInput.max = String(MAX_ZOOM);
   render();
 
@@ -207,7 +214,7 @@ export async function cropPhoto(file, title) {
   frame.removeEventListener("pointercancel", onUp);
   frame.removeEventListener("wheel", onWheel);
   zoomInput.removeEventListener("input", onZoomInput);
-  window.removeEventListener("resize", render);
+  resized.disconnect();
   dialog.close();
   URL.revokeObjectURL(url);
   img.removeAttribute("src");

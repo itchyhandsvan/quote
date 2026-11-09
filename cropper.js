@@ -2,7 +2,7 @@
 // quotation (111 x 90), so what's inside the frame is exactly what the PDF shows.
 // Drag to move, pinch or use the slider to zoom.
 
-import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=41";
+import { FRAME_RATIO, OUTPUT_WIDTH } from "./photos.js?v=44";
 
 const ORIGINAL_MAX = 2400; // originals are scaled down to this to keep storage small
 const MAX_ZOOM = 4;

@@ -179,7 +179,8 @@ class Writer {
     });
   }
 
-  // Business header shared by both documents. No business address is printed.
+  // Business header shared by both documents: website, Instagram and phone
+  // (no business address or email). Blank fields in Settings are skipped.
   letterhead(top) {
     const { f, page } = this;
     const size = 83;
@@ -189,9 +190,16 @@ class Writer {
     const s = this.settings;
     this.text(s.businessName, 153, top + 2, 12.5, f.heading, { spacing: 0.6 });
     this.text(s.tagline, 153, top + 15, 8.6, f.regular);
-    this.text(s.website, 153, top + 33, 7.4, f.regular);
-    this.text(s.phone, 153, top + 47, 7.4, f.regular);
-    this.lines(wrap(s.mission, f.lightItalic, 7, 143), 412, top + 3, 7, f.lightItalic, 10.1);
+    const mission = wrap(s.mission, f.lightItalic, 7, 143);
+    const MISSION_LEAD = 10.1;
+    this.lines(mission, 412, top + 3, 7, f.lightItalic, MISSION_LEAD);
+    // The contact lines are stacked upwards from the phone number, whose baseline lines up
+    // with the last line of the mission statement.
+    const missionBaseline = top + 3 + (mission.length - 1) * MISSION_LEAD + 7 * 0.95;
+    const phoneTop = missionBaseline - 7.4 * 0.95;
+    const contact = [s.website, s.instagram, s.phone].map((v) => (v || "").trim()).filter(Boolean);
+    const lead = 11;
+    this.lines(contact, 153, phoneTop - (contact.length - 1) * lead, 7.4, f.regular, lead);
   }
 
   // Lays out blocks, starting a new page (with the table header) when one doesn't fit.

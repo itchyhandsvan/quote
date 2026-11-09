@@ -179,7 +179,7 @@ class Writer {
     });
   }
 
-  // Business header shared by both documents.
+  // Business header shared by both documents. No business address is printed.
   letterhead(top) {
     const { f, page } = this;
     const size = 83;
@@ -190,8 +190,7 @@ class Writer {
     this.text(s.businessName, 153, top + 2, 12.5, f.heading, { spacing: 0.6 });
     this.text(s.tagline, 153, top + 15, 8.6, f.regular);
     this.text(s.website, 153, top + 33, 7.4, f.regular);
-    this.lines(s.address.split("\n"), 153, top + 47, 7.4, f.regular, 10);
-    this.text(s.phone, 153, top + 70, 7.4, f.regular);
+    this.text(s.phone, 153, top + 47, 7.4, f.regular);
     this.lines(wrap(s.mission, f.lightItalic, 7, 143), 412, top + 3, 7, f.lightItalic, 10.1);
   }
 

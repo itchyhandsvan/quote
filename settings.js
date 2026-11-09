@@ -7,7 +7,6 @@ export const SETTING_FIELDS = [
   { key: "businessName", label: "Business name" },
   { key: "tagline", label: "Tagline" },
   { key: "website", label: "Website" },
-  { key: "address", label: "Address", multiline: true },
   { key: "phone", label: "Phone" },
   { key: "uen", label: "UEN (invoice)" },
   { key: "mission", label: "Mission statement", multiline: true },
@@ -25,7 +24,6 @@ export const DEFAULT_SETTINGS = {
   businessName: "ITCHYHANDSVAN",
   tagline: "Customised Fake Food Displays",
   website: "www.itchyhandsvan.com",
-  address: "596C Ang Mo Kio Street 52\n25-341, Singapore 563596",
   phone: "+65 8922 2124",
   uen: "UEN 53466890M",
   mission:

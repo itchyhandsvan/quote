@@ -1,10 +1,10 @@
-import { fetchJob, sheetIdFromLink } from "./sheet.js?v=39";
-import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=39";
-import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=39";
-import { cropPhoto } from "./cropper.js?v=39";
-import { pastePhoto } from "./paste.js?v=39";
-import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=39";
-import { unlock, lockDevice } from "./lock.js?v=39";
+import { fetchJob, sheetIdFromLink } from "./sheet.js?v=41";
+import { buildPdf, fileName, money, checkInvoiceTotals } from "./render.js?v=41";
+import { getPhoto, getOriginal, savePhoto, deletePhoto } from "./photos.js?v=41";
+import { cropPhoto } from "./cropper.js?v=41";
+import { pastePhoto } from "./paste.js?v=41";
+import { SETTING_FIELDS, loadSettings, saveSettings, resetSettings } from "./settings.js?v=41";
+import { unlock, lockDevice } from "./lock.js?v=41";
 
 const $ = (sel) => document.querySelector(sel);
 const RECENT_KEY = "itchyquote.recent.v1";
